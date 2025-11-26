@@ -72,12 +72,28 @@ def download_single_video(url, fmt, output):
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download([url])
-    except Exception:
-        # fallback to safe best format
-        st.warning("Selected format blocked, trying safe default...")
-        ydl_opts["format"] = "bestvideo+bestaudio/best"
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
+    except Exception as e:
+        st.warning(f"Selected format blocked or unavailable: {e}")
+        st.info("Automatically selecting best available format…")
+        # Fetch available formats
+        with yt_dlp.YoutubeDL({"quiet": True, "skip_download": True,
+                               "extractor_args": {"youtube": {"player_client": "default"}}}) as ydl:
+            info = ydl.extract_info(url, download=False)
+        safe_formats = []
+        for f in info.get("formats", []):
+            # Cloud-safe: video+audio or audio-only
+            if (f.get("vcodec") != "none" and f.get("acodec") != "none") or (f.get("vcodec") == "none" and f.get("acodec") != "none"):
+                safe_formats.append(f)
+        # Pick the highest resolution / bitrate available
+        if safe_formats:
+            fallback_fmt = safe_formats[-1]["format_id"]
+            st.info(f"Downloading with fallback format: {fallback_fmt}")
+            ydl_opts["format"] = fallback_fmt
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+        else:
+            st.error("No compatible formats available for this video.")
+
 
 
 def download_playlist_threaded(playlist_urls, fmt, output, max_threads=4):
