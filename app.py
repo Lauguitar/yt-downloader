@@ -5,19 +5,19 @@ import re
 from concurrent.futures import ThreadPoolExecutor
 
 st.set_page_config(page_title="YouTube Downloader", page_icon="🎥", layout="centered")
-st.title("🎥 YouTube Downloader (Video, Audio, Playlists)")
+st.title("🎥 YouTube Downloader (Cloud-Safe Edition)")
 
 
-# ---------------------------------------------------------
+# -------------------------------
 # Automatic filename cleaner
-# ---------------------------------------------------------
+# -------------------------------
 def clean_filename(filename):
     return re.sub(r'[<>:"/\\|?*]', '_', filename)
 
 
-# ---------------------------------------------------------
-# Progress Hook
-# ---------------------------------------------------------
+# -------------------------------
+# Progress hook
+# -------------------------------
 def progress_hook(d):
     if d["status"] == "downloading":
         total = d.get("total_bytes") or d.get("total_bytes_estimate")
@@ -32,21 +32,23 @@ def progress_hook(d):
         st.session_state.speed_text.text("Processing file…")
 
 
-# ---------------------------------------------------------
-# Fetch Formats
-# ---------------------------------------------------------
+# -------------------------------
+# Fetch formats
+# -------------------------------
 def fetch_formats(url):
     try:
-        with yt_dlp.YoutubeDL({"quiet": True, "skip_download": True}) as ydl:
+        with yt_dlp.YoutubeDL({"quiet": True, "skip_download": True,
+                               "extractor_args": {"youtube": {"player_client": "default"}}}) as ydl:
             info = ydl.extract_info(url, download=False)
 
         formats = []
         for f in info.get("formats", []):
+            # Skip formats that are video-only without audio if JS/DASH required (safe for Cloud)
+            if f.get("vcodec") != "none" and f.get("acodec") == "none":
+                continue
             label = f"{f.get('format_id')} - {f.get('resolution','audio')}"
-
             if f.get("filesize"):
                 label += f" ({round(f['filesize']/1024/1024,2)} MB)"
-
             formats.append((label, f.get("format_id"), f))
 
         return info, formats
@@ -55,20 +57,27 @@ def fetch_formats(url):
         return None, []
 
 
-# ---------------------------------------------------------
-# Threaded Playlist Download
-# ---------------------------------------------------------
+# -------------------------------
+# Download functions
+# -------------------------------
 def download_single_video(url, fmt, output):
     ydl_opts = {
         "format": fmt,
         "outtmpl": os.path.join(output, "%(title)s.%(ext)s"),
         "windowsfilenames": True,
+        "extractor_args": {"youtube": {"player_client": "default"}},
         "progress_hooks": [progress_hook],
-        "quiet": True
+        "quiet": True,
     }
-
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
+    except Exception:
+        # fallback to safe best format
+        st.warning("Selected format blocked, trying safe default...")
+        ydl_opts["format"] = "bestvideo+bestaudio/best"
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
 
 
 def download_playlist_threaded(playlist_urls, fmt, output, max_threads=4):
@@ -77,9 +86,9 @@ def download_playlist_threaded(playlist_urls, fmt, output, max_threads=4):
             executor.submit(download_single_video, link, fmt, output)
 
 
-# ---------------------------------------------------------
+# -------------------------------
 # Streamlit UI
-# ---------------------------------------------------------
+# -------------------------------
 url = st.text_input("Enter YouTube Video / Playlist URL")
 download_path = st.text_input("Download Folder", value="downloads")
 
@@ -98,11 +107,15 @@ if url:
         st.write(f"**Title:** {info.get('title','N/A')}")
         st.write(f"**Type:** {'Playlist' if 'entries' in info else 'Single Video'}")
 
-        # Filter formats
+        # Filter formats based on user selection
         if filter_type == "Video Only":
             formats = [(l, fid, f) for l, fid, f in formats if f.get("vcodec") != "none"]
         elif filter_type == "Audio Only":
-            formats = [(l, fid, f) for l, fid, f in formats if f.get("acodec") != "none" and f.get("vcodec") == "none"]
+            formats = [(l, fid, f) for l, fid, f in formats if f.get("vcodec") == "none" and f.get("acodec") != "none"]
+
+        if not formats:
+            st.warning("No compatible formats available for this selection. Using safe default.")
+            formats = [("Safe Default", "bestvideo+bestaudio/best", {})]
 
         # Format selector
         labels = [l for l, fid, f in formats]
@@ -115,7 +128,7 @@ if url:
         if "speed_text" not in st.session_state:
             st.session_state.speed_text = st.empty()
 
-        # Button
+        # Download button
         if st.button("Download"):
             os.makedirs(download_path, exist_ok=True)
             st.session_state.progress_bar.progress(0)
@@ -125,7 +138,6 @@ if url:
             if "entries" in info:
                 st.warning("Playlist detected — downloading with multithreading...")
                 playlist_urls = [e["url"] for e in info["entries"] if e]
-
                 try:
                     download_playlist_threaded(
                         playlist_urls,
@@ -136,8 +148,7 @@ if url:
                     st.success("Playlist download complete!")
                 except Exception as e:
                     st.error(f"Playlist download failed: {e}")
-
-            # Single Video
+            # Single video
             else:
                 try:
                     download_single_video(url, selected_fmt, download_path)
